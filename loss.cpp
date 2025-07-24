@@ -1,10 +1,9 @@
 #include "loss.hpp"
 
-
-double MSELoss::forward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) {
+double MSELoss::forward(const Tensor& predicted, const Tensor& truth) {
     return 0.5 * (predicted - truth).squaredNorm();
 }
 
-Eigen::VectorXd MSELoss::backward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) {
+Tensor MSELoss::backward(const Tensor& predicted, const Tensor& truth) {
     return predicted - truth;
 }

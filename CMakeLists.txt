@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.14)
 project(AI)
 
-find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+include(FetchContent)
+FetchContent_Declare(
+  Eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG master
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE)
+
+FetchContent_MakeAvailable(Eigen)
 
 add_executable(main main.cpp layer.cpp loss.cpp)
 

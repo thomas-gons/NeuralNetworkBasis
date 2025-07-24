@@ -1,21 +1,20 @@
 #ifndef __LOSS_HPP__
 #define __LOSS_HPP__
 
-#include <Eigen/Dense>
-#include <cmath>
+#include "common.hpp"
 
 class Loss {
 public:
     virtual ~Loss() = default;
 
-    virtual double forward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) = 0;
-    virtual Eigen::VectorXd backward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) = 0;
+    virtual double forward(const Tensor& predicted, const Tensor& truth) = 0;
+    virtual Tensor backward(const Tensor& predicted, const Tensor& truth) = 0;
 };
 
 class MSELoss: public Loss {
-    double forward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) override;
-
-    Eigen::VectorXd backward(const Eigen::MatrixXd& predicted, const Eigen::MatrixXd& truth) override;
+public:
+    double forward(const Tensor& predicted, const Tensor& truth) override;
+    Tensor backward(const Tensor& predicted, const Tensor& truth) override;
 };
 
 #endif
