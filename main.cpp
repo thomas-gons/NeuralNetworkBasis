@@ -2,102 +2,86 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
-#include <random>
-#include <Eigen/Dense>
+#include <chrono>
+#include <memory>
+#include <functional>
 
+#include "common.hpp"
 #include "layer.hpp"
 #include "loss.hpp"
-#include <memory>
+
 
 class Model {
-public:
     std::vector<std::unique_ptr<Layer>> layers;
     std::unique_ptr<Loss> loss;
+    std::function<void(int epoch, double loss)> on_epoch_end_callback;
     double lr;
+    int epochs;
 
-    public:
-    Model(double lr) : lr(lr) {}
+public:
+    Model(
+        std::unique_ptr<Loss> loss,
+        double lr,
+        int epochs,
+        std::function<void(int, double)> on_epoch_end_callback = nullptr
+    ) : loss(std::move(loss)), lr(lr), epochs(epochs), on_epoch_end_callback(on_epoch_end_callback) {
+        layers = std::vector<std::unique_ptr<Layer>>();
+    }
 
     void addLayer(std::unique_ptr<Layer> layer) {
         layers.push_back(std::move(layer));
     }
-
-    template<typename... Layers>
-    void addLayers(Layers&&... ls) {
-        (addLayer(std::move(ls)), ...);
-    }
-
-    void addLoss(std::unique_ptr<Loss> l) {
-        loss = std::move(l);
-    }
-
-    Eigen::VectorXd predict(const Eigen::VectorXd& input) {
-        Eigen::VectorXd current_output = input;
-         for (auto& layer : layers) {
-            current_output = (*layer).forward(current_output);
-        }
-        return current_output;
-    }
-
-    void train(const Eigen::VectorXd& input, const Eigen::VectorXd truth) {
-        Eigen::VectorXd pred = predict(input);
-
-        Eigen::VectorXd grad = (*layers[layers.size() - 1]).backward(pred, lr); 
-
-        for (int i = layers.size() - 1; i >= 0; i--) {
-            Layer& current_layer = *layers[i];
-            grad = current_layer.backward(grad, lr);
+    
+    void train(xt::xarray<double> inputs, xt::xarray<double> truths) {
+        double err;
+        for (int epoch = 0; epoch < epochs; epoch++) {
+            for (int i = 0; i < inputs.shape()[0]; i++) {
+                xt::xarray<double> curr = xt::row(inputs, i);
+                for (auto& layer: layers) {
+                    curr = layer->forward(curr);
+                }
+                xt::xarray<double> truth = xt::row(truths, i);
+                err = loss->forward(curr, truth);
+                
+                xt::xarray<double> grad = loss->backward(curr, truth);
+                for (int j = layers.size() - 1; j >= 0; j--) {
+                    grad = layers[j]->backward(grad, lr);
+                }
+            }
+            if (on_epoch_end_callback) {
+                on_epoch_end_callback(epoch, err);
+            }
         }
     }
-
-    ~Model() = default;
 };
 
+void test_callback(int epoch, double loss) {
+    std::cout << "epoch: " << epoch << ", loss: " << loss << std::endl;
+}
 
 int main() {
-    // Utilisation de conteneurs C++ modernes pour les données
-    std::vector<Eigen::VectorXd> x_data = {
-        (Eigen::VectorXd(2) << 0, 0).finished(),
-        (Eigen::VectorXd(2) << 1, 0).finished(),
-        (Eigen::VectorXd(2) << 0, 1).finished(),
-        (Eigen::VectorXd(2) << 1, 1).finished()
-    };
-    std::vector<Eigen::VectorXd> y_data = {
-        (Eigen::VectorXd(1) << 0).finished(),
-        (Eigen::VectorXd(1) << 1).finished(),
-        (Eigen::VectorXd(1) << 1).finished(),
-        (Eigen::VectorXd(1) << 0).finished()
-    };
+    auto start = std::chrono::high_resolution_clock::now();
+    xt::random::seed(time(NULL));
 
-    double lr = 0.1;
-    Model model(lr);
+    xt::xarray<double> inputs = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    xt::xarray<double> truths = {0.0, 1.0, 1.0, 0.0};
+    truths.reshape({4, 1});
     
-    model.addLayers(
-        std::make_unique<DenseLayer>(2, 3),
-        std::make_unique<SigmoidLayer>(),
-        std::make_unique<DenseLayer>(3, 1),
-        std::make_unique<SigmoidLayer>()
-    );
+    double lr = 1e-2;
+    double err;
+    int epochs = 1000000;
 
-    for (int epoch = 0; epoch < 20000; epoch++) {
-        double total_loss = 0.0;
-        for (size_t i = 0; i < x_data.size(); i++) {
-            model.train(x_data[i], y_data[i]);
-            // Calculer la perte pour l'affichage
-            total_loss += (*model.loss).forward(model.predict(x_data[i]), y_data[i]);
-        }
+    Model model(std::make_unique<MSELoss>(), lr, epochs, test_callback);
 
-        if (epoch > 0 && epoch % 2000 == 0) {
-            std::cout << "Epoque " << epoch << ", Perte moyenne: " << total_loss / x_data.size() << std::endl;
-        }
-    }
+    model.addLayer(std::make_unique<DenseLayer>(2, 2));
+    model.addLayer(std::make_unique<ReLULayer>());
 
-    std::cout << "\n--- Test apres entrainement ---\n";
-    for (size_t i = 0; i < x_data.size(); i++) {
-        Eigen::VectorXd pred = model.predict(x_data[i]);
-        std::cout << "Entree: (" << x_data[i](0) << ", " << x_data[i](1)
-                  << ") -> Prediction: " << pred(0) << " (Cible: " << y_data[i](0) << ")" << std::endl;
-    }
+    model.addLayer(std::make_unique<DenseLayer>(2, 1));
+    model.addLayer(std::make_unique<ReLULayer>());
+    model.train(inputs, truths);
 
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "\nTemps total d'exécution : " << duration.count() << " secondes" << std::endl;
     return 0;
 }

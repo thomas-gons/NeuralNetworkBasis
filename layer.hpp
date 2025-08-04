@@ -1,52 +1,56 @@
 #ifndef __LAYER_HPP__
 #define __LAYER_HPP__
 
-#include <Eigen/Dense>
-#include <cmath>
+#include "common.hpp"
 
 class Layer {
 public:
-    Eigen::VectorXd inputs;
-    Eigen::VectorXd last_output;
+    xt::xarray<double> inputs;
+    xt::xarray<double> last_output;
 
     virtual ~Layer() = default;
 
-    virtual Eigen::VectorXd forward(Eigen::VectorXd& inputs) = 0;
-    virtual Eigen::VectorXd backward(Eigen::VectorXd& upstream_gradient, double lr) = 0;
+    virtual xt::xarray<double> forward(const xt::xarray<double>& inputs) = 0;
+    virtual xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) = 0;
 };
 
-
 class DenseLayer: public Layer {
-    Eigen::MatrixXd weights;
-    Eigen::VectorXd biases;
+public:
+    xt::xarray<double> weights;
+    xt::xarray<double> biases;
 
 public:
     DenseLayer(int input_size, int output_size);
 
-    Eigen::VectorXd forward(Eigen::VectorXd& inputs) override;
-    Eigen::VectorXd backward(Eigen::VectorXd& upstream_gradient, double lr) override;
+    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
+    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
 };
-
 
 class ActivationLayer: public Layer {
-public:    
-    ActivationLayer();
-    virtual ~ActivationLayer();
-
+public:
     virtual double activation_function(double weighted_sum) = 0;
-    Eigen::VectorXd forward(Eigen::VectorXd& inputs) override;
-    virtual Eigen::VectorXd backward(Eigen::VectorXd& upstream_gradient, double lr) = 0;
+    virtual xt::xarray<double> forward(const xt::xarray<double>& inputs) = 0;
+    virtual xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) = 0;
 };
 
-
 class SigmoidLayer: public ActivationLayer {
-
 public:
-    SigmoidLayer();
-    ~SigmoidLayer() override;
+    SigmoidLayer() = default;
+    ~SigmoidLayer() override = default;
     
     double activation_function(double weighted_sum) override;
-    Eigen::VectorXd backward(Eigen::VectorXd& upstream_gradient, double lr) override;
+    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
+    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
+};
+
+class ReLULayer: public ActivationLayer {
+public:
+    ReLULayer() = default;
+    ~ReLULayer() override = default;
+    
+    double activation_function(double weighted_sum) override;
+    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
+    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
 };
 
 #endif
