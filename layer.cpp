@@ -1,5 +1,6 @@
 #include "layer.hpp"
 
+
 DenseLayer::DenseLayer(int input_size, int output_size) {
     weights = xt::random::rand({output_size, input_size}, -1.0f, 1.0f);
     biases = xt::zeros<double>({output_size}); 
@@ -11,8 +12,6 @@ xt::xarray<double> DenseLayer::forward(const xt::xarray<double>& inputs) {
 }
 
 xt::xarray<double> DenseLayer::backward(const xt::xarray<double>& upstream_gradient, double lr) {
-    // std::cout << "BACKWARD: dense layer" << std::endl;
-    // std::cout << "upstream gradient: " << upstream_gradient << std::endl;
     auto weights_gradient = xt::linalg::outer(inputs, upstream_gradient);
     weights -= lr * xt::transpose(weights_gradient);
     biases -= lr * upstream_gradient;

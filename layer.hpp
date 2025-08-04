@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 
+
 class Layer {
 public:
     xt::xarray<double> inputs;

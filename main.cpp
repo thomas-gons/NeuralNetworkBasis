@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <cstdlib>
 #include <chrono>
 #include <memory>
@@ -28,8 +27,8 @@ public:
         layers = std::vector<std::unique_ptr<Layer>>();
     }
 
-    void addLayer(std::unique_ptr<Layer> layer) {
-        layers.push_back(std::move(layer));
+    void addLayer(std::unique_ptr<Layer> p_layer) {
+        layers.push_back(std::move(p_layer));
     }
     
     void train(xt::xarray<double> inputs, xt::xarray<double> truths) {
