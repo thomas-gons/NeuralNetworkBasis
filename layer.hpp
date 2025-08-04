@@ -6,32 +6,32 @@
 
 class Layer {
 public:
-    xt::xarray<double> inputs;
-    xt::xarray<double> last_output;
+    xt::xarray<float> inputs;
+    xt::xarray<float> last_output;
 
     virtual ~Layer() = default;
 
-    virtual xt::xarray<double> forward(const xt::xarray<double>& inputs) = 0;
-    virtual xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) = 0;
+    virtual xt::xarray<float> forward(const xt::xarray<float>& inputs) = 0;
+    virtual xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) = 0;
 };
 
 class DenseLayer: public Layer {
 public:
-    xt::xarray<double> weights;
-    xt::xarray<double> biases;
+    xt::xarray<float> weights;
+    xt::xarray<float> biases;
 
 public:
     DenseLayer(int input_size, int output_size);
 
-    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
-    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
+    xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
+    xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
 };
 
 class ActivationLayer: public Layer {
 public:
-    virtual double activation_function(double weighted_sum) = 0;
-    virtual xt::xarray<double> forward(const xt::xarray<double>& inputs) = 0;
-    virtual xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) = 0;
+    virtual float activation_function(float weighted_sum) = 0;
+    virtual xt::xarray<float> forward(const xt::xarray<float>& inputs) = 0;
+    virtual xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) = 0;
 };
 
 class SigmoidLayer: public ActivationLayer {
@@ -39,9 +39,9 @@ public:
     SigmoidLayer() = default;
     ~SigmoidLayer() override = default;
     
-    double activation_function(double weighted_sum) override;
-    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
-    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
+    float activation_function(float weighted_sum) override;
+    xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
+    xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
 };
 
 class ReLULayer: public ActivationLayer {
@@ -49,9 +49,9 @@ public:
     ReLULayer() = default;
     ~ReLULayer() override = default;
     
-    double activation_function(double weighted_sum) override;
-    xt::xarray<double> forward(const xt::xarray<double>& inputs) override;
-    xt::xarray<double> backward(const xt::xarray<double>& upstream_gradient, double lr) override;
+    float activation_function(float weighted_sum) override;
+    xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
+    xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
 };
 
 #endif

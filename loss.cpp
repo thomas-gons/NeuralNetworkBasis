@@ -1,13 +1,13 @@
 #include "loss.hpp"
 
 
-double MSELoss::forward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) {
+float MSELoss::forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
     auto diff = predicted - truth;
-    double sum = xt::sum(xt::square(diff))();
+    float sum = xt::sum(xt::square(diff))();
     return sum / predicted.size();
 }
 
-xt::xarray<double> MSELoss::backward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) {
+xt::xarray<float> MSELoss::backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
     return predicted - truth;
 }
 

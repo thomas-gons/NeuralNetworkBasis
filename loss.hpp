@@ -6,15 +6,15 @@
 
 class Loss {
 public:
-    virtual double forward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) = 0;
-    virtual xt::xarray<double> backward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) = 0;
+    virtual float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
+    virtual xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
 };
 
 class MSELoss: public Loss {
 public:
     MSELoss() = default;
-    double forward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) override;
-    xt::xarray<double> backward(const xt::xarray<double>& predicted, const xt::xarray<double>& truth) override;
+    float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+    xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
 };
 
 #endif
