@@ -22,6 +22,7 @@ public:
 
 public:
     DenseLayer(int input_size, int output_size);
+    DenseLayer(const xt::xarray<float>& weights, const xt::xarray<float>& biases);
 
     xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
     xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;

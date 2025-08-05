@@ -4,8 +4,16 @@ project(AI)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT CMAKE_POLICY_DEFAULT_CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
-# Trouve les paquets
+include(FetchContent)
+
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 find_package(xtensor REQUIRED)
 find_package(xtensor-blas REQUIRED)
 
@@ -19,7 +27,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mavx2 -ffast-math -
 
 
 # Crée l'exécutable
-add_executable(main main.cpp layer.cpp loss.cpp)
+add_executable(main main.cpp layer.cpp loss.cpp utils.cpp)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT result)
@@ -38,4 +46,5 @@ target_include_directories(main PUBLIC
 target_link_libraries(main PRIVATE
     ${BLAS_LIBRARIES}
     ${LAPACK_LIBRARIES}
+    nlohmann_json::nlohmann_json
 )

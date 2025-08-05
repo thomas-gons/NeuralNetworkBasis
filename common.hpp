@@ -8,4 +8,9 @@
 #include <xtensor-blas/xblas.hpp>
 #include <xtensor-blas/xlinalg.hpp>
 
+#include <nlohmann/json.hpp>
+
+std::string xarray_shape(const xt::xarray<float>& arr);
+nlohmann::json load_json(const std::string& path);
+
 #endif
