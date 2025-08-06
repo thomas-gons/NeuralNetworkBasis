@@ -18,16 +18,14 @@ find_package(xtensor REQUIRED)
 find_package(xtensor-blas REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type: Debug, Release, RelWithDebInfo, MinSizeRel" FORCE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type: Debug, Release, RelWithDebInfo, MinSizeRel" FORCE)
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mavx2 -ffast-math -march=native")
 
 
 
-
-# Crée l'exécutable
-add_executable(main main.cpp layer.cpp loss.cpp utils.cpp)
+add_executable(main main.cpp layer.cpp loss.cpp utils.cpp dataloader/dataset.cpp)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT result)

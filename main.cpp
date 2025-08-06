@@ -4,16 +4,16 @@
 #include <chrono>
 #include <memory>
 #include <functional>
-#include <nlohmann/json.hpp>
 
 #include "common.hpp"
 #include "layer.hpp"
 #include "loss.hpp"
+#include "dataloader/dataset.hpp"
 
 
 class Model {
     std::vector<std::unique_ptr<Layer>> layers;
-    std::unique_ptr<Loss> loss;
+    std::unique_ptr<loss::Loss> loss;
     float lr;
     int epochs;
     int batch_size;
@@ -21,7 +21,7 @@ class Model {
 
 public:
     Model(
-        std::unique_ptr<Loss> loss,
+        std::unique_ptr<loss::Loss> loss,
         float lr,
         int batch_size,
         int epochs,
@@ -70,38 +70,45 @@ void test_callback(int epoch, float loss) {
     std::cout << "epoch: " << epoch << ", loss: " << loss << std::endl;
 }
 
+
 int main() {
     auto config = load_json("../config.json");
     if (config.is_null()) {
         std::cerr << "Failed to load config.json" << std::endl;
         return 1;
     }
+    
+    MNISTDataset dataset(
+        "../data/train-images-idx3-ubyte",
+        "../data/train-labels-idx1-ubyte",
+        "../data/t10k-images-idx3-ubyte",
+        "../data/t10k-labels-idx1-ubyte"
+    );
 
     auto start = std::chrono::high_resolution_clock::now();
     xt::random::seed(time(NULL));
 
-    xt::xarray<float> inputs = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
-    xt::xarray<float> truths = {0, 1, 1, 0};
-    truths.reshape({4, 1});
     
     float lr = config.value("learning_rate", 1e-4);
     int batch_size = config.value("batch_size", 4);
     int epochs = config.value("epochs", 1000);
 
-    int max_batch_size = inputs.shape()[0];
+    int max_batch_size = dataset.training_images.shape()[0];
     if (batch_size > max_batch_size) {
         std::cout << "\e[1;33mBatch size cannot be greater than the number of inputs.\e[0m" << std::endl;
         std::cout << "Using batch size: " << max_batch_size << std::endl;
         batch_size = max_batch_size;
     }
+    
+    auto image_size = dataset.training_images.shape()[1];
+    Model model(std::make_unique<loss::MSE>(), lr, batch_size, epochs, test_callback);
+    model.addLayer(std::make_unique<DenseLayer>(image_size * image_size, 128));
+    model.addLayer(std::make_unique<activation::Sigmoid>());
+    model.addLayer(std::make_unique<DenseLayer>(128, 10));
+    model.addLayer(std::make_unique<activation::Softmax>());
 
-    Model model(std::make_unique<MSELoss>(), lr, batch_size, epochs, test_callback);
-
-    model.addLayer(std::make_unique<DenseLayer>(2, 2));
-    model.addLayer(std::make_unique<SigmoidLayer>());
-    model.addLayer(std::make_unique<DenseLayer>(2, 1));
-    model.addLayer(std::make_unique<SigmoidLayer>());
-    model.train(inputs, truths);
+    return 0;
+    model.train(dataset.training_images, dataset.training_labels);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> duration = end - start;

@@ -4,17 +4,26 @@
 
 #include "common.hpp"
 
-class Loss {
-public:
-    virtual float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
-    virtual xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
-};
+namespace loss {
+    class Loss {
+    public:
+        virtual float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
+        virtual xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) = 0;
+    };
 
-class MSELoss: public Loss {
-public:
-    MSELoss() = default;
-    float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
-    xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
-};
+    class MSE: public Loss {
+    public:
+        MSE() = default;
+        float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+        xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+    };
+
+    class CrossEntropy: public Loss {
+    public:
+        CrossEntropy() = default;
+        float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+        xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+    };
+}
 
 #endif

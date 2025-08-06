@@ -26,37 +26,44 @@ xt::xarray<float> DenseLayer::backward(const xt::xarray<float>& upstream_gradien
     return xt::linalg::dot(upstream_gradient, weights);
 }
 
-float SigmoidLayer::activation_function(float weighted_sum) {
-    return 1.0 / (1.0 + std::exp(-weighted_sum));
-}
+namespace activation {
 
-xt::xarray<float> SigmoidLayer::forward(const xt::xarray<float>& inputs) {
-    auto vecf = xt::vectorize([this](float x) {
-        return this->activation_function(x);
-    });
-    last_output = vecf(inputs);
-    return last_output;
-}
+    float Sigmoid::activation_function(float weighted_sum) {
+        return 1.0 / (1.0 + std::exp(-weighted_sum));
+    }
 
-xt::xarray<float> SigmoidLayer::backward(const xt::xarray<float>& upstream_gradient, float lr) {
-    return upstream_gradient * last_output * (1 - last_output);
-}
+    xt::xarray<float> Sigmoid::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        return upstream_gradient * last_output * (1 - last_output);
+    }
 
 
-float ReLULayer::activation_function(float weighted_sum) {
-    return std::max((float)0.0f, weighted_sum);
-}
+    float ReLU::activation_function(float weighted_sum) {
+        return std::max((float)0.0f, weighted_sum);
+    }
 
-xt::xarray<float> ReLULayer::forward(const xt::xarray<float>& inputs) {
-    auto vecf = xt::vectorize([this](float x) {
-        return this->activation_function(x);
-    });
+    xt::xarray<float> ReLU::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        return upstream_gradient * xt::cast<float>(this->inputs > 0);
+    }
 
-    this->inputs = inputs;
-    last_output = vecf(inputs);
-    return last_output;
-}
+    xt::xarray<float> Softmax::forward(const xt::xarray<float>& inputs) {
+        xt::xarray<float> exp_inputs = xt::exp(inputs);
+        float sum_exp = xt::sum(exp_inputs)();
 
-xt::xarray<float> ReLULayer::backward(const xt::xarray<float>& upstream_gradient, float lr) {
-    return upstream_gradient * xt::cast<float>(this->inputs > 0);
+        this->inputs = inputs;
+        last_output = exp_inputs / sum_exp;
+        return last_output; 
+    }
+
+
+     xt::xarray<float> Softmax::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        
+        xt::xarray<float> output_reshaped = xt::expand_dims(last_output, 1);
+        xt::xarray<float> upstream_reshaped = xt::expand_dims(upstream_gradient, 1);
+        xt::xarray<float> J = xt::eye(last_output.shape()[0]) * output_reshaped - xt::linalg::outer(output_reshaped, output_reshaped);
+
+        xt::xarray<float> gradient_to_weights = xt::linalg::dot(J, upstream_reshaped);
+
+        return gradient_to_weights;
+    }
+ 
 }

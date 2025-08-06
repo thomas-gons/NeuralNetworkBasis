@@ -1,5 +1,5 @@
-#ifndef __LAYER_HPP__
-#define __LAYER_HPP__
+#ifndef ___HPP__
+#define ___HPP__
 
 #include "common.hpp"
 
@@ -28,31 +28,48 @@ public:
     xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
 };
 
-class ActivationLayer: public Layer {
-public:
-    virtual float activation_function(float weighted_sum) = 0;
-    virtual xt::xarray<float> forward(const xt::xarray<float>& inputs) = 0;
-    virtual xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) = 0;
-};
+namespace activation {
+    class BaseActivation: public Layer {
+    public:
+        virtual float activation_function(float weighted_sum) {return weighted_sum;};
+        xt::xarray<float> forward(const xt::xarray<float>& inputs) {
+            auto vecf = xt::vectorize([this](float x) {
+                return this->activation_function(x);
+            });
+            this->inputs = inputs;
+            last_output = vecf(inputs);
+            return last_output;
+        };
+        virtual xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) = 0;
+    };
 
-class SigmoidLayer: public ActivationLayer {
-public:
-    SigmoidLayer() = default;
-    ~SigmoidLayer() override = default;
-    
-    float activation_function(float weighted_sum) override;
-    xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
-    xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
-};
+    class Sigmoid: public BaseActivation {
+    public:
+        Sigmoid() = default;
+        ~Sigmoid() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
 
-class ReLULayer: public ActivationLayer {
-public:
-    ReLULayer() = default;
-    ~ReLULayer() override = default;
-    
-    float activation_function(float weighted_sum) override;
-    xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
-    xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
-};
+    class ReLU: public BaseActivation {
+    public:
+        ReLU() = default;
+        ~ReLU() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+
+    class Softmax: public BaseActivation {
+    public:
+        Softmax() = default;
+        ~Softmax() override = default;
+        
+        xt::xarray<float> forward(const xt::xarray<float>& inputs) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+}
+
 
 #endif

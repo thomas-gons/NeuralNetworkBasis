@@ -3,6 +3,7 @@
 
 #include <xtensor/containers/xarray.hpp>
 #include <xtensor/containers/xtensor.hpp>
+#include <xtensor/containers/xadapt.hpp>
 #include <xtensor/generators/xrandom.hpp>
 #include <xtensor/core/xvectorize.hpp>
 #include <xtensor-blas/xblas.hpp>
