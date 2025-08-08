@@ -37,6 +37,15 @@ namespace activation {
         return upstream_gradient * last_output * (1 - last_output);
     }
 
+    
+    float Tanh::activation_function(float weighted_sum) {
+        return std::tanh(weighted_sum);
+    }
+
+    xt::xarray<float> Tanh::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        return upstream_gradient * (1 - xt::square(last_output));
+    }
+
 
     float ReLU::activation_function(float weighted_sum) {
         return std::max((float)0.0f, weighted_sum);
@@ -45,6 +54,39 @@ namespace activation {
     xt::xarray<float> ReLU::backward(const xt::xarray<float>& upstream_gradient, float lr) {
         return upstream_gradient * xt::cast<float>(this->inputs > 0);
     }
+
+
+    float LeakyReLU::activation_function(float weighted_sum) {
+        return weighted_sum >= 0 ? weighted_sum : 0.01f * weighted_sum;
+    }
+
+    xt::xarray<float> LeakyReLU::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        auto grad_mask = xt::cast<float>(this->inputs > 0);
+        return upstream_gradient * (grad_mask + 0.01f * (1 - grad_mask));
+    }
+
+
+    float ELU::activation_function(float weighted_sum) {
+        return weighted_sum >= 0 ? weighted_sum : alpha * (std::exp(weighted_sum) - 1);
+    }
+
+    xt::xarray<float> ELU::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        auto mask = last_output >= 0;
+        auto derivative = xt::where(mask, 1.0f, alpha * xt::exp(last_output));
+        return upstream_gradient * derivative;
+    }
+
+    float GELU::activation_function(float weighted_sum) {
+        return 0.5 * weighted_sum * (1 + std::tanh(std::sqrt(2 / M_PI) * (weighted_sum + 0.044715 * std::pow(weighted_sum, 3))));
+    }
+
+    xt::xarray<float> GELU::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+        const float sqrt_2_over_pi = std::sqrt(2.0f / M_PI);
+        auto tanh_val = xt::tanh(sqrt_2_over_pi * (last_output + 0.044715f * xt::pow(last_output, 3)));
+        auto derivative = 0.5f * (1.0f + tanh_val + last_output * (1 - xt::pow(tanh_val, 2)) * sqrt_2_over_pi * (1.0f + 0.134145f * xt::pow(last_output, 2)));
+        return upstream_gradient * derivative;
+    }
+
 
     xt::xarray<float> Softmax::forward(const xt::xarray<float>& inputs) {
         xt::xarray<float> exp_inputs = xt::exp(inputs);
@@ -55,8 +97,7 @@ namespace activation {
         return last_output; 
     }
 
-
-     xt::xarray<float> Softmax::backward(const xt::xarray<float>& upstream_gradient, float lr) {
+    xt::xarray<float> Softmax::backward(const xt::xarray<float>& upstream_gradient, float lr) {
         size_t batch_size = last_output.shape()[0];
         size_t num_classes = last_output.shape()[1];
 

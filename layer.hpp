@@ -52,10 +52,48 @@ namespace activation {
         xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
     };
 
+    class Tanh: public BaseActivation {
+    public:
+        Tanh() = default;
+        ~Tanh() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+
     class ReLU: public BaseActivation {
     public:
         ReLU() = default;
         ~ReLU() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+
+    class LeakyReLU: public BaseActivation {
+    public:
+        LeakyReLU() = default;
+        ~LeakyReLU() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+
+    class ELU: public BaseActivation {
+        float alpha;
+    
+    public:
+        ELU(float alpha) : alpha(alpha) {};
+        ~ELU() override = default;
+        
+        float activation_function(float weighted_sum) override;
+        xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
+    };
+
+    class GELU: public BaseActivation {
+    public:
+        GELU() = default;
+        ~GELU() override = default;
         
         float activation_function(float weighted_sum) override;
         xt::xarray<float> backward(const xt::xarray<float>& upstream_gradient, float lr) override;
