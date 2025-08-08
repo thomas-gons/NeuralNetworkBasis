@@ -1,6 +1,9 @@
 #include "common.hpp"
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <sstream>
+
 
 std::string xarray_shape(const xt::xarray<float>& arr) {
 
@@ -15,14 +18,19 @@ std::string xarray_shape(const xt::xarray<float>& arr) {
     return shape;
 }
 
+std::string print_xarray(const xt::xarray<float>& arr) {
+    std::stringstream ss;
+    ss << arr; 
+    return ss.str();
+}
+
 nlohmann::json load_json(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Erreur: Impossible d'ouvrir le fichier " << path << std::endl;
-        return nullptr; // Retourne un objet JSON nul en cas d'erreur
+        return nullptr;
     }
     
-    // Créez un objet JSON à partir du flux de fichier
     nlohmann::json data;
     try {
         file >> data;

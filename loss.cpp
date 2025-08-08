@@ -21,6 +21,10 @@ namespace loss {
     }
 
     xt::xarray<float> CrossEntropy::backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
-        return truth / predicted;
+        return -truth / predicted;
+    }
+
+    xt::xarray<float> CrossEntropy::backward_fused(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
+        return predicted - truth;
     }
 }

@@ -23,6 +23,7 @@ namespace loss {
         CrossEntropy() = default;
         float forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
         xt::xarray<float> backward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) override;
+        xt::xarray<float> backward_fused(const xt::xarray<float>& predicted, const xt::xarray<float>& truth);
     };
 }
 

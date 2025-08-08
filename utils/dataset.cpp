@@ -52,9 +52,13 @@ std::tuple<xt::xarray<uint32_t>, xt::xarray<unsigned char>> load_idx_data(const 
         std::cerr << "Error: Expected 3 dimensions for images, but got " << image_dims.size() << std::endl;
         return {};
     }
+
     size_t total_image_pixels = image_dims[0] * image_dims[1] * image_dims[2];
     xt::xarray<unsigned char> images(xt::adapt(std::vector<unsigned char>(total_image_pixels), image_dims));
     image_file.read(reinterpret_cast<char*>(images.data()), total_image_pixels);
+    
+    // Merge the rows and cols of the images 
+    images = xt::reshape_view(images, {image_dims[0], image_dims[1] * image_dims[2]});
 
     std::ifstream label_file(label_path, std::ios::binary);
     if (!label_file.is_open()) {
