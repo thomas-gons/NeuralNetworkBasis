@@ -1,6 +1,8 @@
 {
     "learning_rate": 10,
-    "batch_size": 4,
-    "epochs": 1,
+    "train_batch_size": 128,
+    "val_batch_size": 256,
+    "validation_split": 0.2,
+    "epochs": 10,
     "mnist_training_path": "../data/train-labels-idx1-ubyte"
 }

@@ -26,6 +26,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mavx2 -ffast-math -
 
 
 add_executable(main main.cpp layer.cpp loss.cpp utils/dataset.cpp misc.cpp)
+target_compile_options(main PRIVATE -fexec-charset=UTF-8)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT result)
