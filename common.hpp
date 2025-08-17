@@ -6,6 +6,7 @@
 #include <xtensor/containers/xadapt.hpp>
 #include <xtensor/generators/xrandom.hpp>
 #include <xtensor/core/xvectorize.hpp>
+#include <xtensor/misc/xsort.hpp>
 #include <xtensor-blas/xblas.hpp>
 #include <xtensor-blas/xlinalg.hpp>
 

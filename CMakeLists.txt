@@ -23,9 +23,14 @@ endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mavx2 -ffast-math -march=native")
 
+# check if mold is available
+find_program(MOLD_EXECUTABLE mold)
+if(MOLD_EXECUTABLE)
+  message(STATUS "Using mold linker")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=mold")
+endif()
 
-
-add_executable(main main.cpp layer.cpp loss.cpp utils/dataset.cpp misc.cpp)
+add_executable(main main.cpp model.cpp layer.cpp loss.cpp utils/dataset.cpp misc.cpp)
 target_compile_options(main PRIVATE -fexec-charset=UTF-8)
 
 include(CheckIPOSupported)

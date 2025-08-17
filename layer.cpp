@@ -55,7 +55,6 @@ namespace activation {
         return upstream_gradient * xt::cast<float>(this->inputs > 0);
     }
 
-
     float LeakyReLU::activation_function(float weighted_sum) {
         return weighted_sum >= 0 ? weighted_sum : 0.01f * weighted_sum;
     }
@@ -89,12 +88,15 @@ namespace activation {
 
 
     xt::xarray<float> Softmax::forward(const xt::xarray<float>& inputs) {
-        xt::xarray<float> exp_inputs = xt::exp(inputs);
-        float sum_exp = xt::sum(exp_inputs)();
+        xt::xarray<float> max_per_row = xt::amax(inputs, {1}, xt::keep_dims);
+        xt::xarray<float> stable_inputs = inputs - max_per_row;
+
+        xt::xarray<float> exp_inputs = xt::exp(stable_inputs);
+        xt::xarray<float> sum_exp_per_row = xt::sum(exp_inputs, {1}, xt::keep_dims);
 
         this->inputs = inputs;
-        last_output = exp_inputs / sum_exp;
-        return last_output; 
+        last_output = exp_inputs / sum_exp_per_row;
+        return last_output;
     }
 
     xt::xarray<float> Softmax::backward(const xt::xarray<float>& upstream_gradient, float lr) {

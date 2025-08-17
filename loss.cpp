@@ -15,8 +15,11 @@ namespace loss {
     }
 
     float CrossEntropy::forward(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
-        auto log = xt::log(predicted);
-        auto sum = xt::sum(truth * log)();
+        // numerical stability: clip predicted values to avoid log(0) = -inf
+        const float epsilon = 1e-15;
+        xt::xarray<float> clamped_predicted = xt::clip(predicted, epsilon, 1.0f - epsilon);
+        auto log_predicted = xt::log(clamped_predicted);
+        auto sum = xt::sum(truth * log_predicted)();
         return -sum;
     }
 
@@ -25,6 +28,14 @@ namespace loss {
     }
 
     xt::xarray<float> CrossEntropy::backward_fused(const xt::xarray<float>& predicted, const xt::xarray<float>& truth) {
-        return predicted - truth;
+        xt::xarray<float> grad = predicted;
+
+        xt::xarray<size_t> batch_indices = xt::arange(predicted.shape(0));
+        for (size_t i = 0; i < batch_indices.size(); ++i) {
+            grad(batch_indices(i), truth(i)) -= 1.0f;
+        }
+
+
+        return grad;
     }
 }

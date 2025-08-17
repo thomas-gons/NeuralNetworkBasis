@@ -2,6 +2,7 @@
 #define __DATALOADER_HPP__
 
 #include "../common.hpp"
+#include "dataset.hpp"
 #include <utility>
 
 class Dataloader {
@@ -11,11 +12,12 @@ class Dataloader {
 public:
     unsigned int batch_size;
     unsigned int n_batches;
+    unsigned int total_samples;
     
-    Dataloader(xt::xarray<float> x_data, xt::xarray<float> y_data, unsigned int batch_size)
+    Dataloader(Subset subset, unsigned int batch_size, bool shuffle = false)
         : batch_size(batch_size),
-          x_data(std::move(x_data)),
-          y_data(std::move(y_data)) 
+          x_data(std::move(subset.data)),
+          y_data(std::move(subset.labels)) 
     {
         if (this->x_data.shape()[0] != this->y_data.shape()[0]) {
             throw std::runtime_error("Input and output data must have the same number of samples.");
@@ -25,7 +27,14 @@ public:
             throw std::runtime_error("Batch size must be <= number of samples.");
         }
 
+        if (shuffle) {
+            auto& gen = xt::random::get_default_random_engine();
+            xt::random::shuffle(this->x_data, gen);
+            xt::random::shuffle(this->y_data, gen);
+        }
+
         n_batches = this->x_data.shape()[0] / batch_size;
+        total_samples = this->x_data.shape()[0];
     }
 
     class iterator {
@@ -55,11 +64,7 @@ public:
             auto end = std::min(current_index + batch_size, (unsigned int)x_data.shape(0));
 
             auto x_batch = xt::view(x_data, xt::range(start, end), xt::all());
-            auto y_batch_view = xt::view(y_data, xt::range(start, end), xt::all());
-            xt::xarray<float> y_batch = y_batch_view;
-            if (y_data.shape().size() == 1) {
-                y_batch = xt::expand_dims(y_batch, 1);
-            }
+            auto y_batch = xt::view(y_data, xt::range(start, end), xt::all());
 
             return {x_batch, y_batch};
         }
