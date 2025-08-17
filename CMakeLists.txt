@@ -30,7 +30,11 @@ if(MOLD_EXECUTABLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=mold")
 endif()
 
-add_executable(main main.cpp model.cpp layer.cpp loss.cpp utils/dataset.cpp misc.cpp)
+add_executable(main
+  src/main.cpp src/model.cpp src/layer.cpp src/loss.cpp
+  src/utils/dataset.cpp src/utils/misc.cpp
+)
+
 target_compile_options(main PRIVATE -fexec-charset=UTF-8)
 
 include(CheckIPOSupported)
@@ -44,6 +48,7 @@ endif()
 target_include_directories(main PUBLIC
     ${xtensor_INCLUDE_DIRS}
     ${xtensor-blas_INCLUDE_DIRS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 # Lie les bibliothèques OpenBLAS et LAPACK (LE POINT CRUCIAL)
